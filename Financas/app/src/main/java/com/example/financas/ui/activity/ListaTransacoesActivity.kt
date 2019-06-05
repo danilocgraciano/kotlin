@@ -28,33 +28,8 @@ class ListaTransacoesActivity : AppCompatActivity() {
 
         totalizar()
 
-        lista_transacoes_adiciona_receita.setOnClickListener {
-            AdicionaTransacaoDialog(this, window.decorView as ViewGroup).configuraDialog(
-                Tipo.RECEITA,
-                object : TransacaoDelegate {
-                    override fun delegate(transacao: Transacao) {
-                        atualizaTransacoes(transacao)
-                        lista_transacoes_adiciona_menu.close(true)
-                    }
-                    override fun cancel() {
-                        lista_transacoes_adiciona_menu.close(true)
-                    }
-                })
-        }
+        configuraMenu()
 
-        lista_transacoes_adiciona_despesa.setOnClickListener {
-            AdicionaTransacaoDialog(this, window.decorView as ViewGroup).configuraDialog(
-                Tipo.DESPESA,
-                object : TransacaoDelegate {
-                    override fun delegate(transacao: Transacao) {
-                        atualizaTransacoes(transacao)
-                        lista_transacoes_adiciona_menu.close(true)
-                    }
-                    override fun cancel() {
-                        lista_transacoes_adiciona_menu.close(true)
-                    }
-                })
-        }
     }
 
     fun atualizaTransacoes(transacao: Transacao) {
@@ -95,5 +70,27 @@ class ListaTransacoesActivity : AppCompatActivity() {
             resumo_card_total.setTextColor(ContextCompat.getColor(this, R.color.despesa))
         }
 
+    }
+
+    fun configuraMenu() {
+        lista_transacoes_adiciona_receita.setOnClickListener { openDialog(Tipo.RECEITA) }
+        lista_transacoes_adiciona_despesa.setOnClickListener { openDialog(Tipo.DESPESA) }
+    }
+
+    fun openDialog(tipo: Tipo) {
+        AdicionaTransacaoDialog(this, window.decorView as ViewGroup)
+            .show(
+                tipo,
+                object : TransacaoDelegate {
+                    override fun delegate(transacao: Transacao) {
+                        atualizaTransacoes(transacao)
+                        lista_transacoes_adiciona_menu.close(true)
+                    }
+
+                    override fun cancel() {
+                        lista_transacoes_adiciona_menu.close(true)
+                    }
+                }
+            )
     }
 }

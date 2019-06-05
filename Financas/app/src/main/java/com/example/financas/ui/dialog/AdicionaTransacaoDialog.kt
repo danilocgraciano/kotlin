@@ -24,8 +24,11 @@ class AdicionaTransacaoDialog(
 ) {
 
     private val viewCriada: View = criaLayout()
+    private val campoData = viewCriada.form_transacao_data
+    private val campoValor = viewCriada.form_transacao_valor
+    private val campoCategoria = viewCriada.form_transacao_categoria
 
-    fun configuraDialog(tipo: Tipo, transacaoDelegate: TransacaoDelegate) {
+    fun show(tipo: Tipo, transacaoDelegate: TransacaoDelegate) {
 
         configuraCampoData()
         configuraCampoCategoria(tipo)
@@ -44,13 +47,13 @@ class AdicionaTransacaoDialog(
         val mes = hoje.get(Calendar.MONTH)
         val dia = hoje.get(Calendar.DAY_OF_MONTH)
 
-        viewCriada.form_transacao_data.setText(hoje.format())
-        viewCriada.form_transacao_data.setOnClickListener {
+        campoData.setText(hoje.format())
+        campoData.setOnClickListener {
             DatePickerDialog(context,
                 DatePickerDialog.OnDateSetListener { _, ano, mes, dia ->
                     val dataSelecionada = Calendar.getInstance()
                     dataSelecionada.set(ano, mes, dia)
-                    viewCriada.form_transacao_data.setText(dataSelecionada.format())
+                    campoData.setText(dataSelecionada.format())
                 }
                 , ano, mes, dia)
                 .show()
@@ -59,10 +62,7 @@ class AdicionaTransacaoDialog(
 
     private fun configuraCampoCategoria(tipo: Tipo) {
 
-        val categorias = if (tipo == Tipo.RECEITA)
-            R.array.categorias_de_receita
-        else
-            R.array.categorias_de_despesa
+        val categorias = categoriasPor(tipo)
 
         val adapter = ArrayAdapter.createFromResource(
             context,
@@ -70,25 +70,28 @@ class AdicionaTransacaoDialog(
             android.R.layout.simple_spinner_dropdown_item
         )
 
-        viewCriada.form_transacao_categoria.adapter = adapter
+        campoCategoria.adapter = adapter
 
+    }
+
+    private fun categoriasPor(tipo: Tipo): Int {
+        if (tipo == Tipo.RECEITA)
+            return R.array.categorias_de_receita
+        return R.array.categorias_de_despesa
     }
 
     private fun configuraFormulario(tipo: Tipo, transacaoDelegate: TransacaoDelegate) {
 
-        val titulo = if (tipo == Tipo.RECEITA)
-            R.string.adiciona_receita
-        else
-            R.string.adiciona_despesa
+        val titulo = tituloPor(tipo)
 
         AlertDialog.Builder(context)
             .setTitle(titulo)
             .setView(viewCriada)
             .setCancelable(false)
             .setPositiveButton("Adicionar") { _, _ ->
-                val txtValor = viewCriada.form_transacao_valor.text.toString()
-                val txtData = viewCriada.form_transacao_data.text.toString()
-                val txtCategoria = viewCriada.form_transacao_categoria.selectedItem.toString()
+                val txtValor = campoValor.text.toString()
+                val txtData = campoData.text.toString()
+                val txtCategoria = campoCategoria.selectedItem.toString()
 
                 val valor = converteCampoValor(txtValor)
 
@@ -105,6 +108,12 @@ class AdicionaTransacaoDialog(
             }
             .setNegativeButton("Cancelar") { _, _ -> transacaoDelegate.cancel() }
             .show()
+    }
+
+    private fun tituloPor(tipo: Tipo): Int {
+        if (tipo == Tipo.RECEITA)
+            return R.string.adiciona_receita
+        return R.string.adiciona_despesa
     }
 
     private fun converteCampoValor(txtValor: String): BigDecimal {
