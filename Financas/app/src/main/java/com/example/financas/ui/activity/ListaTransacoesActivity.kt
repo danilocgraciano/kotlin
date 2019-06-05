@@ -64,8 +64,7 @@ class ListaTransacoesActivity : AppCompatActivity() {
     }
 
     fun initAdapter() {
-        val transacoesAdapter = ListaTransacoesAdapter(this, transacoes)
-        lista_transacoes_listview.adapter = transacoesAdapter
+        lista_transacoes_listview.adapter = ListaTransacoesAdapter(this, transacoes)
     }
 
     fun totalizar() {
