@@ -3,7 +3,10 @@ package com.example.financas.ui.activity
 import android.os.Bundle
 import android.support.v4.content.ContextCompat
 import android.support.v7.app.AppCompatActivity
+import android.view.Menu
+import android.view.MenuItem
 import android.view.ViewGroup
+import android.widget.AdapterView
 import com.example.financas.R
 import com.example.financas.delegate.TransacaoDelegate
 import com.example.financas.extension.format
@@ -11,6 +14,7 @@ import com.example.financas.model.Tipo
 import com.example.financas.model.Transacao
 import com.example.financas.ui.adapter.ListaTransacoesAdapter
 import com.example.financas.ui.dialog.AdicionaTransacaoDialog
+import com.example.financas.ui.dialog.AlteraTransacaoDialog
 import kotlinx.android.synthetic.main.activity_lista_transacoes.*
 import kotlinx.android.synthetic.main.resumo_card.*
 import java.math.BigDecimal
@@ -32,14 +36,20 @@ class ListaTransacoesActivity : AppCompatActivity() {
 
     }
 
-    fun atualizaTransacoes(transacao: Transacao) {
-        transacoes.add(transacao)
+    fun atualizaTransacoes() {
         initAdapter()
         totalizar()
     }
 
     fun initAdapter() {
         lista_transacoes_listview.adapter = ListaTransacoesAdapter(this, transacoes)
+        lista_transacoes_listview.setOnItemClickListener { parent, view, index, id ->
+            val transacao = transacoes[index]
+            openDialogAlterar(transacao, index)
+        }
+        lista_transacoes_listview.setOnCreateContextMenuListener { menu, view, menuInfo ->
+            menu.add(Menu.NONE, 1, Menu.NONE, "Remover")
+        }
     }
 
     fun totalizar() {
@@ -73,17 +83,18 @@ class ListaTransacoesActivity : AppCompatActivity() {
     }
 
     fun configuraMenu() {
-        lista_transacoes_adiciona_receita.setOnClickListener { openDialog(Tipo.RECEITA) }
-        lista_transacoes_adiciona_despesa.setOnClickListener { openDialog(Tipo.DESPESA) }
+        lista_transacoes_adiciona_receita.setOnClickListener { openDialogAdicionar(Tipo.RECEITA) }
+        lista_transacoes_adiciona_despesa.setOnClickListener { openDialogAdicionar(Tipo.DESPESA) }
     }
 
-    fun openDialog(tipo: Tipo) {
+    fun openDialogAdicionar(tipo: Tipo) {
         AdicionaTransacaoDialog(this, window.decorView as ViewGroup)
             .show(
                 tipo,
                 object : TransacaoDelegate {
                     override fun delegate(transacao: Transacao) {
-                        atualizaTransacoes(transacao)
+                        transacoes.add(transacao)
+                        atualizaTransacoes()
                         lista_transacoes_adiciona_menu.close(true)
                     }
 
@@ -92,5 +103,31 @@ class ListaTransacoesActivity : AppCompatActivity() {
                     }
                 }
             )
+    }
+
+    fun openDialogAlterar(transacao: Transacao, index: Int) {
+        AlteraTransacaoDialog(this, window.decorView as ViewGroup)
+            .show(transacao, object : TransacaoDelegate {
+                override fun delegate(transacao: Transacao) {
+                    transacoes[index] = transacao
+                    atualizaTransacoes()
+                    lista_transacoes_adiciona_menu.close(true)
+                }
+
+                override fun cancel() {
+                    lista_transacoes_adiciona_menu.close(true)
+                }
+            })
+    }
+
+    override fun onContextItemSelected(item: MenuItem?): Boolean {
+        val menuId = item?.itemId
+        if (menuId == 1) {
+            val adapterMenuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
+            val index = adapterMenuInfo.position
+            transacoes.removeAt(index)
+            atualizaTransacoes()
+        }
+        return super.onContextItemSelected(item)
     }
 }
