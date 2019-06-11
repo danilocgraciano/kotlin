@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.view.ViewGroup
 import android.widget.AdapterView
 import com.example.financas.R
+import com.example.financas.dao.TransacaoDao
 import com.example.financas.delegate.TransacaoDelegate
 import com.example.financas.model.Tipo
 import com.example.financas.model.Transacao
@@ -18,59 +19,69 @@ import kotlinx.android.synthetic.main.activity_lista_transacoes.*
 
 class ListaTransacoesActivity : AppCompatActivity() {
 
-    private val transacoes: MutableList<Transacao> = mutableListOf()
+    private val dao = TransacaoDao()
+
+    private val transacoes = dao.transacoes
+
+    //private lateinit var viewActivity: View
+    private val viewActivity by lazy { window.decorView }
+
+    private val viewGroupActivity by lazy { viewActivity as ViewGroup }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_lista_transacoes)
 
-        initAdapter()
+        //viewActivity = window.decorView
 
-        totalizar()
+        configuraAdapter()
 
-        configuraMenu()
+        configuraResumo()
+
+        configuraFab()
 
     }
 
     fun atualizaTransacoes() {
-        initAdapter()
-        totalizar()
+        configuraAdapter()
+        configuraResumo()
     }
 
-    fun initAdapter() {
-        lista_transacoes_listview.adapter = ListaTransacoesAdapter(this, transacoes)
-        lista_transacoes_listview.setOnItemClickListener { parent, view, index, id ->
-            val transacao = transacoes[index]
-            openDialogAlterar(transacao, index)
+    fun configuraAdapter() {
+        val listaTransacoesAdapter = ListaTransacoesAdapter(this, transacoes)
+        with(lista_transacoes_listview) {
+            adapter = listaTransacoesAdapter
+            setOnItemClickListener { parent, view, index, id ->
+                val transacao = transacoes[index]
+                openDialogAlterar(transacao, index)
+            }
+            setOnCreateContextMenuListener { menu, view, menuInfo ->
+                menu.add(Menu.NONE, 1, Menu.NONE, "Remover")
+            }
         }
-        lista_transacoes_listview.setOnCreateContextMenuListener { menu, view, menuInfo ->
-            menu.add(Menu.NONE, 1, Menu.NONE, "Remover")
-        }
+
     }
 
-    fun totalizar() {
+    fun configuraResumo() {
 
-        val view = window.decorView
-
-        val resumoView = ResumoView(this, view, transacoes)
+        val resumoView = ResumoView(this, viewActivity, transacoes)
         resumoView.atualiza()
 
     }
 
-    fun configuraMenu() {
+    fun configuraFab() {
         lista_transacoes_adiciona_receita.setOnClickListener { openDialogAdicionar(Tipo.RECEITA) }
         lista_transacoes_adiciona_despesa.setOnClickListener { openDialogAdicionar(Tipo.DESPESA) }
     }
 
     fun openDialogAdicionar(tipo: Tipo) {
-        AdicionaTransacaoDialog(this, window.decorView as ViewGroup)
+        AdicionaTransacaoDialog(this, viewGroupActivity)
             .show(
                 tipo,
                 object : TransacaoDelegate {
                     override fun delegate(transacao: Transacao) {
-                        transacoes.add(transacao)
-                        atualizaTransacoes()
+                        adiciona(transacao)
                         lista_transacoes_adiciona_menu.close(true)
                     }
 
@@ -81,12 +92,16 @@ class ListaTransacoesActivity : AppCompatActivity() {
             )
     }
 
+    fun adiciona(transacao: Transacao) {
+        dao.add(transacao)
+        atualizaTransacoes()
+    }
+
     fun openDialogAlterar(transacao: Transacao, index: Int) {
-        AlteraTransacaoDialog(this, window.decorView as ViewGroup)
+        AlteraTransacaoDialog(this, viewGroupActivity)
             .show(transacao, object : TransacaoDelegate {
                 override fun delegate(transacao: Transacao) {
-                    transacoes[index] = transacao
-                    atualizaTransacoes()
+                    altera(transacao, index)
                     lista_transacoes_adiciona_menu.close(true)
                 }
 
@@ -96,14 +111,23 @@ class ListaTransacoesActivity : AppCompatActivity() {
             })
     }
 
+    fun altera(transacao: Transacao, index: Int) {
+        dao.edit(transacao, index)
+        atualizaTransacoes()
+    }
+
     override fun onContextItemSelected(item: MenuItem?): Boolean {
         val menuId = item?.itemId
         if (menuId == 1) {
             val adapterMenuInfo = item.menuInfo as AdapterView.AdapterContextMenuInfo
             val index = adapterMenuInfo.position
-            transacoes.removeAt(index)
-            atualizaTransacoes()
+            remove(index)
         }
         return super.onContextItemSelected(item)
+    }
+
+    fun remove(index: Int) {
+        dao.remove(index)
+        atualizaTransacoes()
     }
 }

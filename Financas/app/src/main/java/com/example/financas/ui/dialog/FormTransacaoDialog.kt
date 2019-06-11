@@ -20,15 +20,17 @@ import java.util.*
 
 abstract open class FormTransacaoDialog(
     private val context: Context,
-    private val viewGroup: ViewGroup) {
+    private val viewGroup: ViewGroup
+) {
 
     private val viewCriada: View = criaLayout()
-    protected  val campoData = viewCriada.form_transacao_data
+    protected val campoData = viewCriada.form_transacao_data
     protected val campoValor = viewCriada.form_transacao_valor
-    protected  val campoCategoria = viewCriada.form_transacao_categoria
+    protected val campoCategoria = viewCriada.form_transacao_categoria
 
     abstract protected val tituloBtnPositivo: String
 
+    //fun show(tipo: Tipo, delegate: (transacao: Transacao) -> Unit {
     fun show(tipo: Tipo, transacaoDelegate: TransacaoDelegate) {
 
         configuraCampoData()
