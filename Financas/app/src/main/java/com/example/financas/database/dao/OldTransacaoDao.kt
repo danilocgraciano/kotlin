@@ -1,4 +1,4 @@
-package com.example.financas.dao
+package com.example.financas.database.dao
 
 import com.example.financas.model.Transacao
 

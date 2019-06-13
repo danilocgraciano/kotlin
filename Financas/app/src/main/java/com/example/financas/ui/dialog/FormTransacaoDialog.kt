@@ -24,6 +24,7 @@ abstract open class FormTransacaoDialog(
 ) {
 
     private val viewCriada: View = criaLayout()
+    protected var campoId: Long = 0
     protected val campoData = viewCriada.form_transacao_data
     protected val campoValor = viewCriada.form_transacao_valor
     protected val campoCategoria = viewCriada.form_transacao_categoria
@@ -101,6 +102,7 @@ abstract open class FormTransacaoDialog(
                 val data = txtData.toCalendar();
 
                 val novaTransacao = Transacao(
+                    id = campoId,
                     tipo = tipo,
                     valor = valor,
                     data = data,

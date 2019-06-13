@@ -1,9 +1,14 @@
 package com.example.financas.model
 
+import android.arch.persistence.room.Entity
+import android.arch.persistence.room.PrimaryKey
 import java.math.BigDecimal
 import java.util.*
 
+@Entity
 class Transacao(
+    @PrimaryKey(autoGenerate = true)
+    val id: Long = 0,
     val valor: BigDecimal,
     val tipo: Tipo,
     val categoria: String = "Indefinida",

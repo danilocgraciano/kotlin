@@ -31,6 +31,7 @@ class AlteraTransacaoDialog(
     }
 
     fun setValues(transacao: Transacao) {
+        campoId = transacao.id
         campoValor.setText(transacao.valor.toString())
         campoData.setText(transacao.data.format())
         val categorias = context.resources.getStringArray(categoriasPor(transacao.tipo))

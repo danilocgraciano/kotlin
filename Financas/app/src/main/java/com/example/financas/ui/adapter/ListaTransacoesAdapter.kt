@@ -56,8 +56,8 @@ class ListaTransacoesAdapter(
         return transacoes[index]
     }
 
-    override fun getItemId(p0: Int): Long {
-        return -1
+    override fun getItemId(index: Int): Long {
+        return transacoes[index].id
     }
 
     override fun getCount(): Int {
